@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---- Neutrales por tema (cambian con data-theme) ---- */
+:root,
+:root[data-theme="light"] {
+  --bg: #f7f8fb;
+  --surface: #ffffff;
+  --surface-alt: #eef0f6;
+  --border: #e6e9f0;
+  --text: #2a2f3a;
+  --text-muted: #7c83a0;
+}
+:root[data-theme="dark"] {
+  /* Tonos más cálidos y profundos que el "gris azulado genérico" anterior. */
+  --bg: #16161a;
+  --surface: #1e1e23;
+  --surface-alt: #26262d;
+  --border: #34343d;
+  --text: #ececf1;
+  --text-muted: #8a8a96;
+}
+
+/* ---- Pasteles: definidos en :root para garantizar que SIEMPRE existen,
+        independiente de cómo Tailwind purga su @theme. ---- */
+:root {
+  --color-pastel-rosa: #f4b8c7;
+  --color-pastel-coral: #f6bfa6;
+  --color-pastel-durazno: #f8d3a0;
+  --color-pastel-amarillo: #f3e3a3;
+  --color-pastel-lima: #d5e5a3;
+  --color-pastel-menta: #a8ddb5;
+  --color-pastel-agua: #a3dad0;
+  --color-pastel-cielo: #a6cdf2;
+  --color-pastel-azul: #aebcf5;
+  --color-pastel-lavanda: #c6b8f0;
+  --color-pastel-lila: #ddb8ec;
+  --color-pastel-malva: #ecb8d9;
+}
+
+/* ---- Tokens estáticos de Tailwind ---- */
+@theme {
+  --font-ui: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+  --radius-control: 8px;
+  --radius-card: 12px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+}
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-feature-settings: "ss01", "cv11";
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.mw-drag { -webkit-app-region: drag; }
+.mw-no-drag { -webkit-app-region: no-drag; }
+
+/* Scrollbar fina */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+  border-radius: 9999px; border: 3px solid transparent; background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--text) 26%, transparent); background-clip: content-box;
+}
+::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- Editor TipTap ---- */
+.mw-editor { outline: none; min-height: 60vh; font-size: calc(16px * var(--editor-scale, 1)); }
+.mw-editor > * + * { margin-top: 0.7em; }
+.mw-editor p { margin: 0; line-height: 1.7; }
+.mw-editor p.is-empty::before,
+.mw-editor h1.is-empty::before,
+.mw-editor h2.is-empty::before,
+.mw-editor h3.is-empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+.mw-editor h1 { font-size: 2rem; font-weight: 700; line-height: 1.2; margin: 1.4em 0 0.3em; letter-spacing: -0.02em; }
+.mw-editor h2 { font-size: 1.5rem; font-weight: 700; line-height: 1.3; margin: 1.3em 0 0.3em; letter-spacing: -0.01em; }
+.mw-editor h3 { font-size: 1.2rem; font-weight: 600; line-height: 1.35; margin: 1.1em 0 0.25em; }
+.mw-editor ul, .mw-editor ol { padding-left: 1.4em; margin: 0.4em 0; }
+.mw-editor li { margin: 0.2em 0; }
+.mw-editor li p { margin: 0; }
+.mw-editor ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.mw-editor ul[data-type="taskList"] li { display: flex; gap: 0.55em; align-items: flex-start; margin: 0.25em 0; }
+.mw-editor ul[data-type="taskList"] li > label { margin-top: 0.3em; user-select: none; }
+.mw-editor ul[data-type="taskList"] li > div { flex: 1; }
+.mw-editor ul[data-type="taskList"] li[data-checked="true"] > div { color: var(--text-muted); text-decoration: line-through; }
+.mw-editor ul[data-type="taskList"] input[type="checkbox"] {
+  appearance: none; -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 4px; cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--text) 35%, transparent);
+  background: var(--surface);
+  display: inline-grid; place-content: center;
+}
+.mw-editor ul[data-type="taskList"] input[type="checkbox"]:checked {
+  background: var(--text); border-color: var(--text);
+}
+.mw-editor ul[data-type="taskList"] input[type="checkbox"]:checked::after {
+  content: ""; width: 9px; height: 5px;
+  border-left: 2px solid var(--surface); border-bottom: 2px solid var(--surface);
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+.mw-editor blockquote {
+  border-left: 3px solid color-mix(in srgb, var(--text) 30%, transparent);
+  padding: 0.2em 0 0.2em 1em; margin: 0.6em 0;
+  color: var(--text-muted); font-style: italic;
+}
+.mw-editor blockquote p { margin: 0.3em 0; }
+.mw-editor code {
+  font-family: var(--font-mono); font-size: 0.9em;
+  background: var(--surface-alt); padding: 0.1em 0.4em; border-radius: 5px;
+}
+.mw-editor pre {
+  font-family: var(--font-mono); background: var(--surface-alt);
+  padding: 0.9em 1.1em; border-radius: 10px; overflow-x: auto; margin: 0.6em 0;
+  font-size: 0.9em; line-height: 1.55;
+}
+.mw-editor pre code { background: transparent; padding: 0; }
+.mw-editor hr { border: none; border-top: 1px solid var(--border); margin: 1.8em 0; }
+.mw-editor a {
+  color: var(--text); text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text) 35%, transparent);
+  text-underline-offset: 3px;
+}
+.mw-editor a:hover { text-decoration-color: var(--text); }
+.mw-editor strong { font-weight: 700; }
+.mw-editor em { font-style: italic; }
+.mw-editor s { text-decoration-line: line-through; }
+.mw-editor u { text-decoration: underline; text-underline-offset: 2px; }
+/* Resaltado: bloque sólido continuo, texto siempre oscuro para contraste fuerte. */
+.mw-editor mark {
+  padding: 0.08em 0.3em;
+  border-radius: 4px;
+  color: #1d2230;
+  text-decoration: none;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.mw-editor mark * { color: inherit !important; }
+.mw-editor img { max-width: 100%; height: auto; border-radius: 10px; margin: 0.4em 0; }
+.mw-editor ::selection { background: color-mix(in srgb, var(--text) 18%, transparent); }
+
+/* Tablas */
+.mw-editor table {
+  border-collapse: collapse; margin: 0.8em 0; width: 100%; overflow: hidden;
+  border-radius: 8px;
+}
+.mw-editor th, .mw-editor td {
+  border: 1px solid var(--border); padding: 0.45em 0.7em;
+  vertical-align: top; position: relative;
+}
+.mw-editor th { background: var(--surface-alt); font-weight: 600; text-align: left; }
+.mw-editor .selectedCell { background: color-mix(in srgb, var(--text) 8%, transparent); }
+.mw-editor .column-resize-handle {
+  position: absolute; right: -2px; top: 0; bottom: 0; width: 4px;
+  background: color-mix(in srgb, var(--text) 35%, transparent); pointer-events: none;
+}
+
+/* Callouts */
+.mw-callout {
+  display: flex; gap: 0.7em;
+  padding: 0.85em 1em;
+  border-radius: 10px;
+  margin: 0.6em 0;
+  background: color-mix(in srgb, var(--callout-color) 22%, var(--surface));
+  border-left: 3px solid var(--callout-color);
+}
+.mw-callout-icon {
+  flex-shrink: 0; font-size: 1.1em; line-height: 1.5;
+}
+.mw-callout-body { flex: 1; }
+.mw-callout-body p:first-child { margin-top: 0; }
+.mw-callout-body p:last-child { margin-bottom: 0; }
