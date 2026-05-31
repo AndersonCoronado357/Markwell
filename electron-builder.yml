@@ -1,0 +1,39 @@
+appId: com.markwell.app
+productName: Markwell
+copyright: © 2026 Markwell
+
+directories:
+  output: dist-installer
+  buildResources: build
+
+# Empaqueta la app ya compilada por electron-vite (carpeta out/).
+files:
+  - out/**
+  - "!**/*.{map,md,ts}"
+
+# Usa el Electron ya descomprimido en node_modules (evita que electron-builder
+# tenga que descomprimir el zip, que falla en esta máquina por el bug de extract-zip).
+electronDist: node_modules/electron/dist
+# El binario de better-sqlite3 para Electron 41 (ABI 145) ya está colocado; no recompilar.
+npmRebuild: false
+
+asar: true
+# Los binarios nativos no pueden cargarse desde dentro del asar → se desempaquetan.
+asarUnpack:
+  - "**/node_modules/better-sqlite3/**"
+  - "**/node_modules/sqlite-vec*/**"
+
+win:
+  # No firmamos ni editamos el .exe (sin certificado), así electron-builder
+  # no descarga winCodeSign (cuya extracción falla aquí por los symlinks de macOS).
+  signAndEditExecutable: false
+  target:
+    - nsis
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  artifactName: Markwell-Setup-${version}.${ext}
