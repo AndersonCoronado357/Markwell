@@ -110,4 +110,20 @@ export function registerIpc(c: Container): void {
   // Respaldos
   handle(Channels.backupCreate, () => c.backup.create());
   handle(Channels.backupList, () => c.backup.list());
+
+  // Plantillas
+  handle(Channels.templateList, () => c.templates.list());
+  handle(Channels.templateCreate, (r) => c.templates.create(r));
+  handle(Channels.templateUpdate, (r) => c.templates.update(r.id, r));
+  handle(Channels.templateDelete, (r) => {
+    c.templates.delete(r.id);
+    return { ok: true as const };
+  });
+  handle(Channels.noteFromTemplate, (r) => {
+    const tpl = c.templates.get(r.templateId);
+    if (!tpl) throw new Error('Plantilla no encontrada');
+    const note = c.notes.create({ folderId: r.folderId ?? null, title: tpl.name, type: 'document' });
+    c.notes.save({ id: note.id, title: tpl.name, contentJson: tpl.contentJson, plaintext: '' });
+    return c.notes.get(note.id)!;
+  });
 }
