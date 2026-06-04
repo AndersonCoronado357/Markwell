@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import { Search, CornerDownLeft } from 'lucide-react';
 import { useStore } from '../store';
-import { buildCommands, type Command } from '../commands';
+import { buildCommandsAsync, type Command } from '../commands';
 
 /** Filtro difuso simple: cada caracter de la query debe aparecer en orden en el label. */
 function fuzzyMatch(label: string, query: string): boolean {
@@ -21,8 +21,12 @@ export function CommandPalette() {
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Recalcula la lista al abrir (refleja el estado actual del store en cada apertura).
-  const commands = useMemo<Command[]>(() => (open ? buildCommands() : []), [open]);
+  // Recalcula la lista al abrir (incluye plantillas — carga async).
+  const [commands, setCommands] = useState<Command[]>([]);
+  useEffect(() => {
+    if (!open) { setCommands([]); return; }
+    void buildCommandsAsync().then(setCommands);
+  }, [open]);
   const filtered = useMemo(() => commands.filter((c) => fuzzyMatch(c.label, query)), [commands, query]);
 
   useEffect(() => { setActiveIndex(0); }, [query, open]);

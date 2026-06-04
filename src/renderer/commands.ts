@@ -8,11 +8,32 @@ export interface Command {
   label: string;
   hint?: string;
   shortcut?: string;
-  group: 'Navegación' | 'Crear' | 'Vista' | 'Ajustes' | 'Datos';
+  group: 'Navegación' | 'Crear' | 'Vista' | 'Ajustes' | 'Datos' | 'Plantillas';
   run: () => void | Promise<void>;
 }
 
-/** Catálogo central de comandos disponibles desde la paleta y los atajos. */
+/**
+ * Catálogo de comandos disponibles desde la paleta y los atajos.
+ * Devuelve una Promise porque los comandos de plantillas se cargan async.
+ */
+export async function buildCommandsAsync(): Promise<Command[]> {
+  const s = useStore.getState();
+  const templates = await ipc(Channels.templateList).catch(() => []);
+  const templateCmds: Command[] = templates.map((t) => ({
+    id: `template.new.${t.id}`,
+    label: `Nueva nota desde "${t.name}"`,
+    group: 'Plantillas',
+    run: async () => {
+      const note = await ipc(Channels.noteFromTemplate, { templateId: t.id, folderId: s.selectedFolderId });
+      await Promise.all([s.loadNotes(), s.loadFolders()]);
+      s.setActiveNote(note.id);
+      toast({ title: 'Nota creada', description: t.name });
+    },
+  }));
+  return [...buildCommands(), ...templateCmds];
+}
+
+/** Catálogo síncrono base. */
 export function buildCommands(): Command[] {
   const s = useStore.getState();
   return [
