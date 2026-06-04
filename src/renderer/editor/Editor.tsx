@@ -14,6 +14,7 @@ import {
 import * as DM from '@radix-ui/react-dropdown-menu';
 import { buildExtensions } from './extensions';
 import { useAutosave, type SaveStatus } from './useAutosave';
+import { setActiveEditor } from './editorBridge';
 import { Dropdown } from '../components/Dropdown';
 import { ContextMenu, type CtxItem } from '../components/ContextMenu';
 import { ColorPickerDropdown, type ColorPreset } from '../components/ColorPickerDropdown';
@@ -100,6 +101,13 @@ export function Editor({ noteId, initialContent, title, onStatusChange }: Props)
 
   const { status, savedAt } = useAutosave(noteId, editor, title);
   useEffect(() => { onStatusChange?.(status, savedAt); }, [status, savedAt, onStatusChange]);
+
+  // Registrar el editor activo para que la barra "Buscar en la nota" pueda
+  // dispararle comandos desde fuera del árbol React.
+  useEffect(() => {
+    setActiveEditor(editor);
+    return () => { setActiveEditor(null); };
+  }, [editor]);
 
   // Re-render del Editor al cambiar la selección, para que el menú contextual
   // refleje si estamos dentro de una celda de tabla.

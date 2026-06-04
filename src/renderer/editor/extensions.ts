@@ -14,6 +14,7 @@ import { CodeBlockLowlight } from '@tiptap/extension-code-block-lowlight';
 import { TableCellWithAlign } from './TableCellWithAlign';
 import { ResizableImage } from './ResizableImage';
 import { lowlight } from './lowlight-config';
+import { FindHighlight } from './FindHighlight';
 import TextAlign from '@tiptap/extension-text-align';
 import FontFamily from '@tiptap/extension-font-family';
 import { Callout } from './Callout';
@@ -49,6 +50,7 @@ export const buildExtensions = () => [
   TableHeader,
   TableCellWithAlign,
   Callout,
+  FindHighlight,
   Placeholder.configure({
     placeholder: ({ node }) => {
       if (node.type.name === 'heading') return 'Encabezado';
