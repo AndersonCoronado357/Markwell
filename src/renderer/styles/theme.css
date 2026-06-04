@@ -137,7 +137,64 @@ body {
   padding: 0.9em 1.1em; border-radius: 10px; overflow-x: auto; margin: 0.6em 0;
   font-size: 0.9em; line-height: 1.55;
 }
-.mw-editor pre code { background: transparent; padding: 0; }
+.mw-editor pre code { background: transparent; padding: 0; color: inherit; }
+
+/* Resaltado de sintaxis (highlight.js / lowlight) — paleta vibrante. */
+/* Selectores con .hljs prefixado y SIN él, porque algunas versiones de
+   lowlight emiten clases con punto y otras con "hljs-". Cubrimos ambas. */
+.mw-editor pre .hljs-keyword,
+.mw-editor pre .hljs-selector-tag,
+.mw-editor pre .hljs-literal,
+.mw-editor pre .hljs-section,
+.mw-editor pre .hljs-link            { color: #b35cc7; font-weight: 700; }
+.mw-editor pre .hljs-built_in,
+.mw-editor pre .hljs-type,
+.mw-editor pre .hljs-class .hljs-title { color: #2f7fd4; font-weight: 600; }
+.mw-editor pre .hljs-string,
+.mw-editor pre .hljs-attr             { color: #2f8a4e; }
+.mw-editor pre .hljs-number,
+.mw-editor pre .hljs-deletion,
+.mw-editor pre .hljs-meta             { color: #c45a1f; font-weight: 600; }
+.mw-editor pre .hljs-title,
+.mw-editor pre .hljs-name,
+.mw-editor pre .hljs-function .hljs-title { color: #b07a14; font-weight: 700; }
+.mw-editor pre .hljs-params           { color: var(--text); }
+.mw-editor pre .hljs-comment,
+.mw-editor pre .hljs-quote            { color: var(--text-muted); font-style: italic; }
+.mw-editor pre .hljs-variable,
+.mw-editor pre .hljs-template-variable { color: #b13a5d; }
+.mw-editor pre .hljs-tag,
+.mw-editor pre .hljs-tag .hljs-name   { color: #2f7fd4; }
+.mw-editor pre .hljs-tag .hljs-attr   { color: #b07a14; }
+.mw-editor pre .hljs-addition         { color: #2f8a4e; }
+.mw-editor pre .hljs-symbol,
+.mw-editor pre .hljs-bullet           { color: #b35cc7; }
+.mw-editor pre .hljs-regexp           { color: #2f8a4e; }
+.mw-editor pre .hljs-emphasis         { font-style: italic; }
+.mw-editor pre .hljs-strong           { font-weight: 700; }
+.mw-editor pre .hljs-operator         { color: #b35cc7; }
+.mw-editor pre .hljs-punctuation      { color: var(--text-muted); }
+.mw-editor pre .hljs-property         { color: #b07a14; }
+
+/* Tonos más brillantes sobre fondo oscuro. */
+:root[data-theme="dark"] .mw-editor pre .hljs-keyword,
+:root[data-theme="dark"] .mw-editor pre .hljs-selector-tag,
+:root[data-theme="dark"] .mw-editor pre .hljs-operator,
+:root[data-theme="dark"] .mw-editor pre .hljs-symbol  { color: #e6a3f5; }
+:root[data-theme="dark"] .mw-editor pre .hljs-built_in,
+:root[data-theme="dark"] .mw-editor pre .hljs-type,
+:root[data-theme="dark"] .mw-editor pre .hljs-tag    { color: #82bcf2; }
+:root[data-theme="dark"] .mw-editor pre .hljs-string,
+:root[data-theme="dark"] .mw-editor pre .hljs-attr,
+:root[data-theme="dark"] .mw-editor pre .hljs-addition,
+:root[data-theme="dark"] .mw-editor pre .hljs-regexp { color: #a3e0b8; }
+:root[data-theme="dark"] .mw-editor pre .hljs-number,
+:root[data-theme="dark"] .mw-editor pre .hljs-meta   { color: #f4b07a; }
+:root[data-theme="dark"] .mw-editor pre .hljs-title,
+:root[data-theme="dark"] .mw-editor pre .hljs-name,
+:root[data-theme="dark"] .mw-editor pre .hljs-property { color: #f0d186; }
+:root[data-theme="dark"] .mw-editor pre .hljs-variable,
+:root[data-theme="dark"] .mw-editor pre .hljs-template-variable { color: #f1a5b8; }
 .mw-editor hr { border: none; border-top: 1px solid var(--border); margin: 1.8em 0; }
 .mw-editor a {
   color: var(--text); text-decoration: underline;
@@ -149,17 +206,69 @@ body {
 .mw-editor em { font-style: italic; }
 .mw-editor s { text-decoration-line: line-through; }
 .mw-editor u { text-decoration: underline; text-underline-offset: 2px; }
-/* Resaltado: bloque sólido continuo, texto siempre oscuro para contraste fuerte. */
-.mw-editor mark {
-  padding: 0.08em 0.3em;
-  border-radius: 4px;
-  color: #1d2230;
+/* Resaltado: bloque sólido continuo. El color del texto se fuerza a oscuro
+   para garantizar contraste sobre cualquier pastel; los hijos heredan. */
+.mw-editor mark,
+.mw-editor mark span,
+.mw-editor mark * {
+  color: #1d2230 !important;
   text-decoration: none;
+}
+.mw-editor mark {
+  /* Sin padding horizontal: así el bloque coloreado queda pegado a las letras
+     adyacentes en lugar de separar visualmente "hola" en "h ol a". */
+  padding: 0.12em 0;
+  border-radius: 2px;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
-.mw-editor mark * { color: inherit !important; }
-.mw-editor img { max-width: 100%; height: auto; border-radius: 10px; margin: 0.4em 0; }
+.mw-editor img { max-width: 100%; height: auto; display: block; }
+
+/* Wrapper de imagen redimensionable (NodeView). El display:flex y justify
+   los aplica el componente con inline style para garantizar precedencia. */
+.mw-img-wrapper { margin: 0.6em 0; }
+.mw-img-box {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  line-height: 0;
+  flex: 0 0 auto;
+}
+.mw-img-box img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 10px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Handles flotantes: 4 esquinas (puntos) + 4 lados (rectángulos). */
+.mw-img-handle {
+  position: absolute;
+  background: var(--text);
+  opacity: 0.85;
+  z-index: 5;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+.mw-img-handle:hover { transform: scale(1.35); opacity: 1; }
+/* Esquinas: puntos redondos. */
+.mw-img-h-nw, .mw-img-h-ne, .mw-img-h-sw, .mw-img-h-se {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.mw-img-h-nw { top: -5px;    left: -5px;  }
+.mw-img-h-ne { top: -5px;    right: -5px; }
+.mw-img-h-sw { bottom: -5px; left: -5px;  }
+.mw-img-h-se { bottom: -5px; right: -5px; }
+/* Lados: barritas. */
+.mw-img-h-n, .mw-img-h-s { left: 50%; width: 24px; height: 6px; border-radius: 3px; transform: translateX(-50%); }
+.mw-img-h-n { top: -3px; }
+.mw-img-h-s { bottom: -3px; }
+.mw-img-h-e, .mw-img-h-w { top: 50%; width: 6px; height: 24px; border-radius: 3px; transform: translateY(-50%); }
+.mw-img-h-e { right: -3px; }
+.mw-img-h-w { left: -3px; }
+.mw-img-h-n:hover, .mw-img-h-s:hover { transform: translateX(-50%) scaleX(1.15); }
+.mw-img-h-e:hover, .mw-img-h-w:hover { transform: translateY(-50%) scaleY(1.15); }
 .mw-editor ::selection { background: color-mix(in srgb, var(--text) 18%, transparent); }
 
 /* Tablas */
