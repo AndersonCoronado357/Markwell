@@ -106,4 +106,8 @@ export function registerIpc(c: Container): void {
     c.settings.set(r.key, r.value);
     return { ok: true as const };
   });
+
+  // Respaldos
+  handle(Channels.backupCreate, () => c.backup.create());
+  handle(Channels.backupList, () => c.backup.list());
 }

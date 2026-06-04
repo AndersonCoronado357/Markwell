@@ -1,6 +1,6 @@
 // Contrato IPC: nombres de canal + formas request/response. Una sola fuente de
 // verdad compartida por preload, renderer y main.
-import type { Folder, FolderNode, Note, NoteSummary, NoteType, SearchHit, Tag } from './models';
+import type { BackupInfo, Folder, FolderNode, Note, NoteSummary, NoteType, SearchHit, Tag } from './models';
 
 export const Channels = {
   appHealth: 'app:health',
@@ -38,6 +38,9 @@ export const Channels = {
 
   settingsGetAll: 'settings:getAll',
   settingsSet: 'settings:set',
+
+  backupCreate: 'backup:create',
+  backupList: 'backup:list',
 } as const;
 
 export interface HealthInfo {
@@ -99,6 +102,9 @@ export interface IpcApi {
 
   [Channels.settingsGetAll]: { req: void; res: Record<string, string> };
   [Channels.settingsSet]: { req: { key: string; value: string }; res: { ok: true } };
+
+  [Channels.backupCreate]: { req: void; res: BackupInfo };
+  [Channels.backupList]: { req: void; res: BackupInfo[] };
 }
 
 export type ChannelName = keyof IpcApi;

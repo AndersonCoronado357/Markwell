@@ -20,8 +20,13 @@ app.whenReady().then(() => {
     const paths = resolvePaths();
     const db = openDb(paths.dbPath);
     const version = migrate(db);
-    const container = buildContainer(db);
+    const container = buildContainer(db, paths.backupsDir);
     registerIpc(container);
+
+    // Respaldo automático si pasaron >=24h desde el último (sin bloquear).
+    setImmediate(() => {
+      try { container.backup.maybeAutoBackup(); } catch (e) { console.warn('auto-backup failed', e); }
+    });
 
     // Verificación / datos de ejemplo (gateados por variable de entorno).
     if (process.env.MARKWELL_SELFTEST === '1') {
@@ -42,6 +47,7 @@ app.whenReady().then(() => {
     });
     ipcMain.handle('window:close', (e) => BrowserWindow.fromWebContents(e.sender)?.close());
     ipcMain.handle('shell:openUserData', () => shell.openPath(app.getPath('userData')));
+    ipcMain.handle('shell:openBackups', () => shell.openPath(paths.backupsDir));
 
     createMainWindow();
     app.on('activate', () => {
