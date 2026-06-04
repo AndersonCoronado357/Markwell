@@ -21,7 +21,11 @@ interface AppState {
   searchHits: SearchHit[];
   searching: boolean;
   settingsOpen: boolean;
-  theme: 'light' | 'dark';
+  paletteOpen: boolean;
+  findInNoteOpen: boolean;
+  findInNoteQuery: string;
+  theme: 'light' | 'dark' | 'system';
+  resolvedTheme: 'light' | 'dark'; // tema efectivo aplicado (resuelve 'system')
   fontScale: number; // editor: 0.85, 1, 1.15, 1.3
   appFont: string;   // family CSS para la UI, '' = predeterminada
   sidebarCollapsed: boolean;
@@ -58,7 +62,11 @@ interface AppState {
   runSearch: (q: string) => Promise<void>;
   clearSearch: () => void;
   openSettings: (open: boolean) => void;
-  setTheme: (t: 'light' | 'dark') => void;
+  openPalette: (open: boolean) => void;
+  openFindInNote: (open: boolean) => void;
+  setFindInNoteQuery: (q: string) => void;
+  focusGlobalSearch: () => void;
+  setTheme: (t: 'light' | 'dark' | 'system') => void;
   setFontScale: (s: number) => void;
   setAppFont: (f: string) => void;
   toggleSidebar: () => void;
@@ -90,7 +98,11 @@ export const useStore = create<AppState>((set, get) => ({
   searchHits: [],
   searching: false,
   settingsOpen: false,
+  paletteOpen: false,
+  findInNoteOpen: false,
+  findInNoteQuery: '',
   theme: 'light',
+  resolvedTheme: 'light',
   fontScale: 1,
   appFont: '',
   sidebarCollapsed: false,
@@ -100,18 +112,31 @@ export const useStore = create<AppState>((set, get) => ({
 
   init: async () => {
     const settings = await ipc(Channels.settingsGetAll);
-    const theme = settings[THEME_KEY] === 'dark' ? 'dark' : 'light';
+    const raw = settings[THEME_KEY];
+    const theme: 'light' | 'dark' | 'system' = raw === 'dark' ? 'dark' : raw === 'system' ? 'system' : 'light';
     const fontScale = Number(settings[FONT_SCALE_KEY]) || 1;
     const appFont = settings[APP_FONT_KEY] ?? '';
     const sidebarCollapsed = settings[SIDEBAR_COLLAPSED_KEY] === '1';
     const notesPaneCollapsed = settings[NOTES_COLLAPSED_KEY] === '1';
     const foldersSectionCollapsed = settings[FOLDERS_SEC_KEY] === '1';
     const tagsSectionCollapsed = settings[TAGS_SEC_KEY] === '1';
-    set({ theme, fontScale, appFont, sidebarCollapsed, notesPaneCollapsed, foldersSectionCollapsed, tagsSectionCollapsed });
-    document.documentElement.dataset.theme = theme;
+    const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const resolvedTheme: 'light' | 'dark' = theme === 'system' ? (sysDark ? 'dark' : 'light') : theme;
+    set({ theme, resolvedTheme, fontScale, appFont, sidebarCollapsed, notesPaneCollapsed, foldersSectionCollapsed, tagsSectionCollapsed });
+    document.documentElement.dataset.theme = resolvedTheme;
     document.documentElement.style.setProperty('--editor-scale', String(fontScale));
-    document.documentElement.style.setProperty('--font-ui-override', appFont || 'inherit');
     if (appFont) document.documentElement.style.setProperty('--font-ui', appFont);
+
+    // Si el usuario eligió "system", reaccionamos a cambios del SO.
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const onChange = () => {
+      if (get().theme !== 'system') return;
+      const rt: 'light' | 'dark' = mq.matches ? 'dark' : 'light';
+      set({ resolvedTheme: rt });
+      document.documentElement.dataset.theme = rt;
+    };
+    mq.addEventListener('change', onChange);
+
     await get().loadFolders();
     await get().loadTags();
     await get().loadNotes();
@@ -297,10 +322,26 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   openSettings: (open) => set({ settingsOpen: open }),
+  openPalette: (open) => set({ paletteOpen: open }),
+  openFindInNote: (open) => set({ findInNoteOpen: open, findInNoteQuery: open ? get().findInNoteQuery : '' }),
+  setFindInNoteQuery: (q) => set({ findInNoteQuery: q }),
+
+  focusGlobalSearch: () => {
+    // Llevamos al usuario a "Todas las notas" y le damos foco al input de la sidebar.
+    set({ selectedFolderId: null, selectedTagId: null, view: 'folder', activeNoteId: null, settingsOpen: false });
+    void get().loadNotes();
+    setTimeout(() => {
+      const el = document.querySelector<HTMLInputElement>('input[data-mw-search]');
+      el?.focus();
+      el?.select();
+    }, 30);
+  },
 
   setTheme: (t) => {
-    set({ theme: t });
-    document.documentElement.dataset.theme = t;
+    const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const rt: 'light' | 'dark' = t === 'system' ? (sysDark ? 'dark' : 'light') : t;
+    set({ theme: t, resolvedTheme: rt });
+    document.documentElement.dataset.theme = rt;
     void ipc(Channels.settingsSet, { key: THEME_KEY, value: t });
   },
 
