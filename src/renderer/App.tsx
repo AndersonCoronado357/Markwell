@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useStore } from './store';
+import { useShortcuts } from './useShortcuts';
 import { Sidebar } from './components/Sidebar';
 import { NotesPane } from './components/NotesPane';
 import { ContentPane } from './components/ContentPane';
@@ -8,6 +9,8 @@ import { TitleBar } from './components/TitleBar';
 import { Toaster } from './components/Toaster';
 import { CollapseRail } from './components/CollapseRail';
 import { CollapseDivider } from './components/Divider';
+import { CommandPalette } from './components/CommandPalette';
+import { FindInNote } from './components/FindInNote';
 
 const RAIL_W = '20px';
 
@@ -20,11 +23,11 @@ export default function App() {
   const toggleNotesPane = useStore((s) => s.toggleNotesPane);
 
   useEffect(() => { void init(); }, [init]);
+  useShortcuts();
 
   const sidebarW = sidebarCollapsed ? RAIL_W : '260px';
   const notesW = notesPaneCollapsed ? RAIL_W : 'minmax(280px, 1fr)';
 
-  // Layout:  [sidebar] | [notes] | [content]   con líneas divisoras entre paneles.
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-alt font-ui text-text">
       <TitleBar />
@@ -65,6 +68,8 @@ export default function App() {
         </div>
       )}
       <Toaster />
+      <CommandPalette />
+      <FindInNote />
     </div>
   );
 }

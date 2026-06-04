@@ -29,6 +29,7 @@ export function SearchBar() {
         className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted"
       />
       <input
+        data-mw-search
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Buscar en tus notas"
