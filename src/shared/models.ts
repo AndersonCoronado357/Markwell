@@ -42,6 +42,13 @@ export interface Note extends NoteSummary {
   deletedAt: string | null;
 }
 
+export interface BackupInfo {
+  filename: string;
+  path: string;
+  createdAt: string;
+  sizeBytes: number;
+}
+
 export interface SearchHit {
   noteId: number;
   title: string;
