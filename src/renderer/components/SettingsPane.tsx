@@ -1,6 +1,11 @@
-import { ArrowLeft, Sun, Moon, Database, Keyboard, Type, Info, TypeOutline, FolderOpen } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Sun, Moon, Monitor, Database, Keyboard, Type, Info, TypeOutline, FolderOpen, Archive, Save } from 'lucide-react';
 import { useStore } from '../store';
 import { Dropdown } from './Dropdown';
+import { ipc } from '../ipc';
+import { Channels } from '../../shared/ipc';
+import { toast } from '../toastStore';
+import type { BackupInfo } from '../../shared/models';
 
 const PASTELS = [
   'rosa', 'coral', 'durazno', 'amarillo', 'lima', 'menta',
@@ -26,8 +31,11 @@ const UI_FONTS: { label: string; value: string }[] = [
 ];
 
 const SHORTCUTS = [
-  { keys: 'Enter', action: 'Confirma el nombre / color en los editores en línea' },
-  { keys: 'Esc', action: 'Cancela el editor en línea' },
+  { keys: 'Ctrl + K', action: 'Abrir la paleta de comandos' },
+  { keys: 'Ctrl + N', action: 'Crear una nueva nota' },
+  { keys: 'Ctrl + ,', action: 'Abrir ajustes' },
+  { keys: 'Ctrl + Shift + S', action: 'Mostrar / ocultar la barra lateral' },
+  { keys: 'Ctrl + Shift + N', action: 'Mostrar / ocultar la lista de notas' },
   { keys: 'Click derecho', action: 'Menú contextual sobre carpeta, etiqueta o nota' },
   { keys: 'Ctrl + B / I / U', action: 'Negrita / cursiva / subrayado en el editor' },
   { keys: 'Ctrl + Z / Y', action: 'Deshacer / rehacer en el editor' },
@@ -62,8 +70,8 @@ export function SettingsPane() {
             Personaliza la apariencia y el comportamiento de Markwell.
           </p>
 
-          <Section icon={<Sun size={15} />} title="Apariencia" hint="Tema claro u oscuro de la interfaz.">
-            <div className="grid grid-cols-2 gap-3 max-w-[820px]">
+          <Section icon={<Sun size={15} />} title="Apariencia" hint="Tema claro, oscuro o el que use tu sistema operativo.">
+            <div className="grid grid-cols-3 gap-3 max-w-[820px]">
               <ThemeCard active={theme === 'light'} onClick={() => setTheme('light')} icon={<Sun size={14} />} label="Claro">
                 <div className="h-16 rounded-[10px] bg-[#f7f8fb] ring-1 ring-[#e6e9f0]">
                   <div className="m-2 h-3 w-12 rounded bg-white shadow-sm" />
@@ -76,6 +84,16 @@ export function SettingsPane() {
                   <div className="m-2 h-3 w-12 rounded bg-[#1e1e23]" />
                   <div className="mx-2 h-2 w-20 rounded bg-[#34343d]" />
                   <div className="mx-2 mt-1 h-2 w-14 rounded bg-[#34343d]" />
+                </div>
+              </ThemeCard>
+              <ThemeCard active={theme === 'system'} onClick={() => setTheme('system')} icon={<Monitor size={14} />} label="Sistema">
+                <div className="flex h-16 gap-0 overflow-hidden rounded-[10px] ring-1 ring-[#a4a7b2]">
+                  <div className="flex-1 bg-[#f7f8fb] p-2">
+                    <div className="h-2.5 w-8 rounded bg-white shadow-sm" />
+                  </div>
+                  <div className="flex-1 bg-[#16161a] p-2">
+                    <div className="h-2.5 w-8 rounded bg-[#1e1e23]" />
+                  </div>
                 </div>
               </ThemeCard>
             </div>
@@ -174,6 +192,8 @@ export function SettingsPane() {
             </div>
           </Section>
 
+          <BackupsSection />
+
           <Section icon={<Info size={15} />} title="Sobre Markwell">
             <p className="text-[13.5px] text-text-muted">
               Editor de notas local. Tus datos no salen de tu máquina. Construido con Electron, SQLite y TipTap.
@@ -182,6 +202,67 @@ export function SettingsPane() {
         </div>
       </div>
     </section>
+  );
+}
+
+function BackupsSection() {
+  const [items, setItems] = useState<BackupInfo[]>([]);
+  const [busy, setBusy] = useState(false);
+
+  const reload = () => { void ipc(Channels.backupList).then(setItems); };
+  useEffect(reload, []);
+
+  const create = async () => {
+    setBusy(true);
+    try {
+      const b = await ipc(Channels.backupCreate);
+      toast({ title: 'Respaldo creado', description: b.filename });
+      reload();
+    } catch {
+      toast({ title: 'No se pudo crear el respaldo' });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Section icon={<Archive size={15} />} title="Respaldos" hint="Markwell crea automáticamente un respaldo diario. Se conservan los últimos 7.">
+      <div className="rounded-card bg-surface-alt p-4">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={create}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-control bg-text px-3 py-1.5 text-[12.5px] font-semibold text-surface transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            <Save size={13} />
+            Crear respaldo ahora
+          </button>
+          <button
+            onClick={() => window.markwell.invoke('shell:openBackups')}
+            className="inline-flex items-center gap-1.5 rounded-control bg-surface px-3 py-1.5 text-[12.5px] font-semibold text-text ring-1 ring-black/[0.06] transition-colors hover:bg-bg"
+          >
+            <FolderOpen size={13} />
+            Abrir carpeta
+          </button>
+        </div>
+        {items.length === 0 ? (
+          <p className="mt-4 text-[12.5px] text-text-muted">Aún no hay respaldos. Se creará uno automáticamente.</p>
+        ) : (
+          <ul className="mt-4 space-y-1">
+            {items.map((b) => (
+              <li key={b.filename} className="flex items-center justify-between gap-3 rounded-control bg-surface px-3 py-2 text-[12.5px]">
+                <span className="truncate font-mono text-text">{b.filename}</span>
+                <span className="shrink-0 text-text-muted">
+                  {new Date(b.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  {' · '}
+                  {(b.sizeBytes / 1024).toFixed(0)} KB
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </Section>
   );
 }
 
