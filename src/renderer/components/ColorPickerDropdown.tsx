@@ -14,10 +14,26 @@ interface Props {
 }
 
 export function ColorPickerDropdown({ value, presets, onChange, trigger, resetLabel = 'Predeterminado' }: Props) {
+  const [open, setOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
 
+  // Aplica el cambio y cierra el dropdown (excepto en el modo "Color personalizado",
+  // donde queremos seguir viendo el picker mientras se ajusta).
+  const apply = (v: string) => {
+    // Si el usuario hace clic en el color que ya está activo, lo quitamos (toggle).
+    if (v && value.toLowerCase() === v.toLowerCase()) onChange('');
+    else onChange(v);
+    setOpen(false);
+  };
+
   return (
-    <DM.Root onOpenChange={(o) => { if (!o) setCustomOpen(false); }}>
+    <DM.Root
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (!o) setCustomOpen(false);
+      }}
+    >
       <DM.Trigger asChild>{trigger}</DM.Trigger>
       <DM.Portal>
         <DM.Content
@@ -35,12 +51,20 @@ export function ColorPickerDropdown({ value, presets, onChange, trigger, resetLa
                 <ArrowLeft size={12} />
                 Atrás
               </button>
-              <CustomColorPicker initial={value || '#a89bf0'} onChange={(hex) => onChange(hex)} />
+              <CustomColorPicker initial={value || '#a89bf0'} onChange={onChange} />
+              <div className="mt-2 flex justify-end gap-2 border-t border-border pt-2">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="rounded-control bg-text px-3 py-1 text-[12px] font-semibold text-surface transition-opacity hover:opacity-90"
+                >
+                  Aplicar
+                </button>
+              </div>
             </>
           ) : (
             <>
               <button
-                onClick={() => onChange('')}
+                onClick={() => apply('')}
                 className="flex w-full cursor-pointer items-center gap-2 rounded-control px-2 py-1.5 text-[12.5px] text-text outline-none hover:bg-surface-alt"
               >
                 <span className="h-4 w-4 rounded-full ring-1 ring-black/[0.08]" />
@@ -55,8 +79,8 @@ export function ColorPickerDropdown({ value, presets, onChange, trigger, resetLa
                   return (
                     <button
                       key={p.value}
-                      onClick={() => onChange(p.value)}
-                      title={p.name}
+                      onClick={() => apply(p.value)}
+                      title={`${p.name}${active ? ' (clic para quitar)' : ''}`}
                       className="relative flex h-6 w-6 items-center justify-center rounded-full ring-1 ring-black/[0.08] transition-transform hover:scale-110"
                       style={{ background: p.value }}
                     >
