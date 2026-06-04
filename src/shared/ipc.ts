@@ -1,6 +1,6 @@
 // Contrato IPC: nombres de canal + formas request/response. Una sola fuente de
 // verdad compartida por preload, renderer y main.
-import type { BackupInfo, Folder, FolderNode, Note, NoteSummary, NoteType, SearchHit, Tag } from './models';
+import type { BackupInfo, Folder, FolderNode, Note, NoteSummary, NoteType, SearchHit, Tag, Template } from './models';
 
 export const Channels = {
   appHealth: 'app:health',
@@ -41,6 +41,12 @@ export const Channels = {
 
   backupCreate: 'backup:create',
   backupList: 'backup:list',
+
+  templateList: 'templates:list',
+  templateCreate: 'templates:create',
+  templateUpdate: 'templates:update',
+  templateDelete: 'templates:delete',
+  noteFromTemplate: 'templates:newNote',
 } as const;
 
 export interface HealthInfo {
@@ -105,6 +111,12 @@ export interface IpcApi {
 
   [Channels.backupCreate]: { req: void; res: BackupInfo };
   [Channels.backupList]: { req: void; res: BackupInfo[] };
+
+  [Channels.templateList]: { req: void; res: Template[] };
+  [Channels.templateCreate]: { req: { name: string; description?: string | null; contentJson: unknown }; res: Template };
+  [Channels.templateUpdate]: { req: { id: number; name?: string; description?: string | null; contentJson?: unknown }; res: Template };
+  [Channels.templateDelete]: { req: { id: number }; res: { ok: true } };
+  [Channels.noteFromTemplate]: { req: { templateId: number; folderId?: number | null }; res: Note };
 }
 
 export type ChannelName = keyof IpcApi;

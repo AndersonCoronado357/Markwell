@@ -60,6 +60,22 @@ const searchReq = z.object({
 
 const settingSet = z.object({ key: z.string().min(1).max(120), value: z.string().max(4000) });
 
+const templateCreate = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(500).nullable().optional(),
+  contentJson: z.unknown(),
+});
+const templateUpdate = z.object({
+  id: z.number().int(),
+  name: z.string().min(1).max(200).optional(),
+  description: z.string().max(500).nullable().optional(),
+  contentJson: z.unknown().optional(),
+});
+const noteFromTemplate = z.object({
+  templateId: z.number().int(),
+  folderId: z.number().int().nullable().optional(),
+});
+
 // Esquema zod por canal (los que reciben payload). Se valida en la frontera IPC.
 export const validators: Partial<Record<string, z.ZodTypeAny>> = {
   [Channels.folderCreate]: folderCreate,
@@ -89,4 +105,9 @@ export const validators: Partial<Record<string, z.ZodTypeAny>> = {
   [Channels.noteSetTags]: noteSetTags,
   [Channels.search]: searchReq,
   [Channels.settingsSet]: settingSet,
+
+  [Channels.templateCreate]: templateCreate,
+  [Channels.templateUpdate]: templateUpdate,
+  [Channels.templateDelete]: idReq,
+  [Channels.noteFromTemplate]: noteFromTemplate,
 };
