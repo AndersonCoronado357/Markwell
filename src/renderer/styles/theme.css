@@ -271,6 +271,20 @@ body {
 .mw-img-h-e:hover, .mw-img-h-w:hover { transform: translateY(-50%) scaleY(1.15); }
 .mw-editor ::selection { background: color-mix(in srgb, var(--text) 18%, transparent); }
 
+/* Resaltado de coincidencias de "Buscar en la nota". Va por encima de cualquier
+   otro fondo (highlight pastel del usuario, código, etc.) pero es traslúcido,
+   así el resaltado original sigue viéndose por debajo. Usa la lavanda neutra
+   de la app en lugar de un amarillo / naranja chillón. */
+.mw-editor .mw-find-hit {
+  background: color-mix(in srgb, var(--color-pastel-lavanda) 45%, transparent);
+  border-radius: 2px;
+}
+.mw-editor .mw-find-hit-current {
+  background: color-mix(in srgb, var(--color-pastel-lavanda) 95%, transparent);
+  color: #1d2230 !important;
+}
+.mw-editor .mw-find-hit-current * { color: inherit !important; }
+
 /* Tablas */
 .mw-editor table {
   border-collapse: collapse; margin: 0.8em 0; width: 100%; overflow: hidden;

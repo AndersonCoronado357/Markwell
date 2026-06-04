@@ -34,11 +34,11 @@ export function useShortcuts(): void {
         useStore.getState().openSettings(true);
         return;
       }
-      // Ctrl+F → buscar en la nota si hay una abierta, si no, foco al buscador global
+      // Ctrl+F → buscar en la nota (toggle); si no hay nota, foco al buscador global.
       if (mod && !e.shiftKey && k === 'f') {
         e.preventDefault();
         const s = useStore.getState();
-        if (s.activeNoteId != null) s.openFindInNote(true);
+        if (s.activeNoteId != null) s.openFindInNote(!s.findInNoteOpen);
         else s.focusGlobalSearch();
         return;
       }
