@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
 import { ipc } from '../ipc';
 import { Channels } from '../../shared/ipc';
+import { setSaveFlusher } from './editorBridge';
 
 export type SaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 
@@ -62,6 +63,18 @@ export function useAutosave(noteId: number | null, editor: Editor | null, title:
       }
     };
   }, [doSave, noteId]);
+
+  // Deja el volcado disponible fuera de React (exportación, sobre todo).
+  useEffect(() => {
+    setSaveFlusher(async () => {
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      await doSave();
+    });
+    return () => setSaveFlusher(null);
+  }, [doSave]);
 
   // Flush al cerrar ventana
   useEffect(() => {

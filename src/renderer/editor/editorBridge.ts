@@ -20,3 +20,18 @@ export function subscribeActiveEditor(cb: (editor: Editor | null) => void): () =
   listeners.add(cb);
   return () => listeners.delete(cb);
 }
+
+/**
+ * Volcado del autoguardado pendiente. Lo registra `useAutosave`, y lo usa quien
+ * necesite el contenido ya escrito en la base: al exportar, por ejemplo, si no
+ * se esperan los 800 ms de debounce el archivo sale sin lo último tecleado.
+ */
+let _flush: (() => Promise<void>) | null = null;
+
+export function setSaveFlusher(fn: (() => Promise<void>) | null): void {
+  _flush = fn;
+}
+
+export function flushActiveSave(): Promise<void> {
+  return _flush ? _flush() : Promise.resolve();
+}
