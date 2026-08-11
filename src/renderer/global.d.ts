@@ -6,6 +6,9 @@ declare global {
     markwell: {
       invoke: <T = unknown>(channel: string, payload?: unknown) => Promise<T>;
       onEvent: (cb: (event: unknown) => void) => () => void;
+      onAiStream: (
+        cb: (event: { requestId: string; type: 'delta' | 'done' | 'error'; text?: string; message?: string }) => void,
+      ) => () => void;
     };
   }
 }

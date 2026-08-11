@@ -9,6 +9,7 @@ export interface Folder {
   name: string;
   color: string | null;
   position: number;
+  kind: 'notes' | 'boards' | 'chats';
   createdAt: string;
   updatedAt: string;
 }
@@ -50,6 +51,62 @@ export interface Template {
   contentJson: unknown;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface BoardSummary {
+  id: number;
+  uuid: string;
+  name: string;
+  color: string | null;
+  folderId: number | null;
+  updatedAt: string;
+}
+
+export interface BoardItem {
+  id: number;
+  boardId: number;
+  type: 'sticky';
+  text: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  color: string | null;
+  updatedAt: string;
+}
+
+export interface BoardConnection {
+  id: number;
+  boardId: number;
+  fromId: number;
+  toId: number;
+  color: string | null;
+}
+
+export interface Board extends BoardSummary {
+  items: BoardItem[];
+  connections: BoardConnection[];
+  createdAt: string;
+  deletedAt: string | null;
+}
+
+export interface AiConvSummary {
+  id: number;
+  uuid: string;
+  title: string;
+  updatedAt: string;
+  folderId: number | null;
+}
+export interface AiConvMessage {
+  id: number;
+  conversationId: number;
+  role: 'user' | 'model';
+  text: string;
+  createdAt: string;
+}
+export interface AiConversation extends AiConvSummary {
+  messages: AiConvMessage[];
+  createdAt: string;
 }
 
 export interface BackupInfo {
