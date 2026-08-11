@@ -1,5 +1,6 @@
 import { Minus, Square, X, Settings } from 'lucide-react';
 import { useStore } from '../store';
+import { Logo } from './Logo';
 
 export function TitleBar() {
   const send = (cmd: 'min' | 'max' | 'close') => window.markwell.invoke('window:' + cmd);
@@ -8,8 +9,8 @@ export function TitleBar() {
 
   return (
     <div className="mw-drag relative z-30 flex h-9 select-none items-center justify-between border-b border-border/60 bg-surface-alt">
-      <div className="flex items-center gap-2 px-4 text-[12.5px] font-semibold tracking-tight text-text">
-        <span className="h-2 w-2 rounded-sm bg-text" />
+      <div className="flex items-center gap-1.5 px-3 text-[12.5px] font-semibold tracking-tight text-text">
+        <Logo size={20} />
         Markwell
       </div>
       <div className="mw-no-drag flex h-full items-center">

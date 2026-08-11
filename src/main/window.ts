@@ -1,5 +1,11 @@
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import path from 'node:path';
+
+// En desarrollo el icono vive en build/; empaquetado se copia a resources/
+// (ver `extraResources` en electron-builder.yml).
+const iconPath = app.isPackaged
+  ? path.join(process.resourcesPath, 'icon.ico')
+  : path.join(__dirname, '../../build/icon.ico');
 
 export function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -8,6 +14,7 @@ export function createMainWindow(): BrowserWindow {
     minWidth: 880,
     minHeight: 600,
     show: false,
+    icon: iconPath,
     // Sin barra de título nativa: la dibuja por completo la app (los controles
     // de minimizar/maximizar/cerrar son componentes propios y responden al tema).
     titleBarStyle: 'hidden',
