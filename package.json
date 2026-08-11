@@ -1,8 +1,8 @@
 {
   "name": "markwell",
   "productName": "Markwell",
-  "version": "0.1.0",
-  "description": "Editor de notas local por bloques, con búsqueda full-text y asistente de IA.",
+  "version": "1.0.0",
+  "description": "Editor de notas local por bloques, con búsqueda full-text, pizarras y asistente de IA.",
   "author": "Markwell",
   "license": "MIT",
   "main": "./out/main/index.js",
@@ -48,6 +48,7 @@
     "@tiptap/react": "^3.24.0",
     "@tiptap/starter-kit": "^3.24.0",
     "better-sqlite3": "^12.10.0",
+    "electron-updater": "^6.8.9",
     "highlight.js": "^11.11.1",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.17.0",

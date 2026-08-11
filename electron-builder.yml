@@ -6,6 +6,13 @@ directories:
   output: dist-installer
   buildResources: build
 
+# Servidor propio de actualizaciones: la misma carpeta desde la que se descarga
+# el instalador. `electron-updater` lee de ahí el latest.yml que genera este
+# mismo build. Sin GitHub Releases de por medio.
+publish:
+  - provider: generic
+    url: https://markwell.acmsy.com/descargas/
+
 # Empaqueta la app ya compilada por electron-vite (carpeta out/).
 files:
   - out/**
@@ -23,10 +30,19 @@ asarUnpack:
   - "**/node_modules/better-sqlite3/**"
   - "**/node_modules/sqlite-vec*/**"
 
+# El icono se copia sin empaquetar para que el proceso main lo pueda pasar a
+# BrowserWindow (icono de ventana y de barra de tareas) en la app instalada.
+extraResources:
+  - from: build/icon.ico
+    to: icon.ico
+
 win:
-  # No firmamos ni editamos el .exe (sin certificado), así electron-builder
-  # no descarga winCodeSign (cuya extracción falla aquí por los symlinks de macOS).
-  signAndEditExecutable: false
+  icon: build/icon.ico
+  # Se edita el .exe para grabarle el icono y los datos de versión. No se firma
+  # (no hay certificado): `signtool` no encuentra nada que firmar y sigue.
+  # Si la descarga de winCodeSign vuelve a fallar en esta máquina, poner esto
+  # en false: el instalador conserva el icono igual, solo lo pierde Markwell.exe.
+  signAndEditExecutable: true
   target:
     - nsis
 
@@ -36,4 +52,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
   artifactName: Markwell-Setup-${version}.${ext}
