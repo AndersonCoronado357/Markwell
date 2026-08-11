@@ -4,6 +4,10 @@ out/
 dist/
 dist-installer/
 *.log
+
+# secretos locales (claves de API) — nunca al repo
+.local-secrets/
+*.key.local
 .DS_Store
 Thumbs.db
 
@@ -11,3 +15,10 @@ Thumbs.db
 *.sqlite
 *.sqlite-*
 *.db
+
+# notas de trabajo internas: se quedan en local
+ROADMAP.md
+PLAN.md
+CLAUDE.md
+*-CLAUDE.md
+.claude/
