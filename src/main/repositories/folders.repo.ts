@@ -11,6 +11,7 @@ function mapFolder(r: any): Folder {
     name: r.name,
     color: r.color,
     position: r.position,
+    kind: (r.kind ?? 'notes') as 'notes' | 'boards' | 'chats',
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -21,11 +22,11 @@ const NOW = "strftime('%Y-%m-%dT%H:%M:%fZ','now')";
 export class FoldersRepo {
   constructor(private db: DB) {}
 
-  list(): Folder[] {
+  list(kind: 'notes' | 'boards' | 'chats' = 'notes'): Folder[] {
     return (
       this.db
-        .prepare('SELECT * FROM folders WHERE deleted_at IS NULL ORDER BY parent_id, position, name')
-        .all() as any[]
+        .prepare('SELECT * FROM folders WHERE deleted_at IS NULL AND kind = ? ORDER BY parent_id, position, name')
+        .all(kind) as any[]
     ).map(mapFolder);
   }
 
@@ -37,9 +38,9 @@ export class FoldersRepo {
     ).map(mapFolder);
   }
 
-  tree(): FolderNode[] {
+  tree(kind: 'notes' | 'boards' | 'chats' = 'notes'): FolderNode[] {
     const nodes = new Map<number, FolderNode>();
-    for (const f of this.list()) nodes.set(f.id, { ...f, children: [] });
+    for (const f of this.list(kind)) nodes.set(f.id, { ...f, children: [] });
     const roots: FolderNode[] = [];
     for (const node of nodes.values()) {
       if (node.parentId != null && nodes.has(node.parentId)) nodes.get(node.parentId)!.children.push(node);
@@ -53,16 +54,17 @@ export class FoldersRepo {
     return r ? mapFolder(r) : null;
   }
 
-  create(p: { name: string; parentId?: number | null; color?: string | null }): Folder {
+  create(p: { name: string; parentId?: number | null; color?: string | null; kind?: 'notes' | 'boards' | 'chats' }): Folder {
     const parentId = p.parentId ?? null;
+    const kind = p.kind ?? 'notes';
     const pos = (
       this.db
-        .prepare('SELECT COALESCE(MAX(position), 0) + 1 AS p FROM folders WHERE parent_id IS ? AND deleted_at IS NULL')
-        .get(parentId) as any
+        .prepare('SELECT COALESCE(MAX(position), 0) + 1 AS p FROM folders WHERE parent_id IS ? AND kind = ? AND deleted_at IS NULL')
+        .get(parentId, kind) as any
     ).p;
     const info = this.db
-      .prepare('INSERT INTO folders(uuid, name, parent_id, color, position) VALUES (?,?,?,?,?)')
-      .run(randomUUID(), p.name, parentId, p.color ?? null, pos);
+      .prepare('INSERT INTO folders(uuid, name, parent_id, color, position, kind) VALUES (?,?,?,?,?,?)')
+      .run(randomUUID(), p.name, parentId, p.color ?? null, pos, kind);
     return this.get(Number(info.lastInsertRowid))!;
   }
 

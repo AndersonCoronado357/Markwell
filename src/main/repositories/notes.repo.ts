@@ -66,6 +66,11 @@ export class NotesRepo {
     return { id: p.id, updatedAt: r.updated_at };
   }
 
+  /** Mueve una nota a otra carpeta (null = raíz). */
+  move(id: number, folderId: number | null): void {
+    this.db.prepare(`UPDATE notes SET folder_id = ?, updated_at = ${NOW} WHERE id = ?`).run(folderId, id);
+  }
+
   trash(id: number): void {
     this.db.prepare(`UPDATE notes SET deleted_at = ${NOW} WHERE id = ?`).run(id);
   }
