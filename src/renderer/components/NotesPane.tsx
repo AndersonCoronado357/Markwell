@@ -53,6 +53,11 @@ function NoteRow({ note }: { note: NoteSummary }) {
     <ContextMenu items={items}>
       <button
         onClick={() => setActiveNote(note.id)}
+        draggable={view !== 'trash'}
+        onDragStart={(e) => {
+          e.dataTransfer.setData('application/x-markwell-note', String(note.id));
+          e.dataTransfer.effectAllowed = 'move';
+        }}
         className={`group flex w-full items-center gap-3 rounded-card px-4 py-3 text-left transition-colors ${
           active ? 'bg-surface shadow-sm ring-1 ring-black/[0.04]' : 'hover:bg-surface/70'
         }`}

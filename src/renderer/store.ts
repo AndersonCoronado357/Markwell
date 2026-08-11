@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { ipc } from './ipc';
 import { Channels } from '../shared/ipc';
-import type { Folder, FolderNode, NoteSummary, SearchHit, Tag } from '../shared/models';
+import type { BoardSummary, Folder, FolderNode, NoteSummary, SearchHit, Tag } from '../shared/models';
 import { toast } from './toastStore';
 
 export type View = 'folder' | 'favorites' | 'trash' | 'tag' | 'search';
+export type AppMode = 'notes' | 'boards' | 'ai';
 
 interface AppState {
   foldersTree: FolderNode[];
@@ -32,6 +33,11 @@ interface AppState {
   notesPaneCollapsed: boolean;
   foldersSectionCollapsed: boolean;
   tagsSectionCollapsed: boolean;
+
+  // Modo de la app: notas (clásico) o pizarras.
+  mode: AppMode;
+  boards: BoardSummary[];
+  activeBoardId: number | null;
 
   init: () => Promise<void>;
   loadFolders: () => Promise<void>;
@@ -73,6 +79,15 @@ interface AppState {
   toggleNotesPane: () => void;
   toggleFoldersSection: () => void;
   toggleTagsSection: () => void;
+
+  setMode: (m: AppMode) => void;
+  loadBoards: () => Promise<void>;
+  setActiveBoard: (id: number | null) => void;
+  createBoard: (name?: string) => Promise<void>;
+  startNewChat: () => void;
+  moveNoteToFolder: (noteId: number, folderId: number | null) => Promise<void>;
+  renameBoard: (id: number, name: string, color?: string | null) => Promise<void>;
+  trashBoard: (id: number, name: string) => Promise<void>;
 }
 
 const THEME_KEY = 'theme';
@@ -82,6 +97,9 @@ const SIDEBAR_COLLAPSED_KEY = 'sidebarCollapsed';
 const NOTES_COLLAPSED_KEY = 'notesCollapsed';
 const FOLDERS_SEC_KEY = 'foldersSectionCollapsed';
 const TAGS_SEC_KEY = 'tagsSectionCollapsed';
+const LAST_MODE_KEY = 'lastMode';
+const LAST_NOTE_KEY = 'lastNoteId';
+const LAST_BOARD_KEY = 'lastBoardId';
 
 export const useStore = create<AppState>((set, get) => ({
   foldersTree: [],
@@ -110,6 +128,10 @@ export const useStore = create<AppState>((set, get) => ({
   foldersSectionCollapsed: false,
   tagsSectionCollapsed: false,
 
+  mode: 'notes',
+  boards: [],
+  activeBoardId: null,
+
   init: async () => {
     const settings = await ipc(Channels.settingsGetAll);
     const raw = settings[THEME_KEY];
@@ -137,12 +159,32 @@ export const useStore = create<AppState>((set, get) => ({
     };
     mq.addEventListener('change', onChange);
 
+    // Modo previo (notas / pizarras / ai)
+    const lastModeRaw = settings[LAST_MODE_KEY];
+    const lastMode: 'notes' | 'boards' | 'ai' =
+      lastModeRaw === 'boards' ? 'boards' : lastModeRaw === 'ai' ? 'ai' : 'notes';
+    set({ mode: lastMode });
+
     await get().loadFolders();
     await get().loadTags();
-    await get().loadNotes();
+    if (lastMode === 'boards') await get().loadBoards();
+    else if (lastMode !== 'ai') await get().loadNotes();
+
+    // Reabrir la última nota / pizarra activa.
+    const lastNoteId = Number(settings[LAST_NOTE_KEY]);
+    const lastBoardId = Number(settings[LAST_BOARD_KEY]);
+    if (lastMode === 'notes' && lastNoteId && get().notes.some((n) => n.id === lastNoteId)) {
+      set({ activeNoteId: lastNoteId });
+    } else if (lastMode === 'boards' && lastBoardId && get().boards.some((b) => b.id === lastBoardId)) {
+      set({ activeBoardId: lastBoardId });
+    }
   },
 
-  loadFolders: async () => set({ foldersTree: await ipc(Channels.folderTree) }),
+  loadFolders: async () => {
+    const m = get().mode;
+    const kind = m === 'boards' ? 'boards' : m === 'ai' ? 'chats' : 'notes';
+    set({ foldersTree: await ipc(Channels.folderTree, { kind }) });
+  },
   loadTags: async () => set({ tags: await ipc(Channels.tagList) }),
 
   loadNotes: async () => {
@@ -165,6 +207,9 @@ export const useStore = create<AppState>((set, get) => ({
 
   selectFolder: async (id) => {
     set({ selectedFolderId: id, selectedTagId: null, view: 'folder', activeNoteId: null });
+    // En modo IA, las carpetas filtran conversaciones; AiPage reacciona al
+    // cambio de selectedFolderId. No hace falta cargar notas.
+    if (get().mode === 'ai') return;
     await get().loadNotes();
   },
 
@@ -188,7 +233,9 @@ export const useStore = create<AppState>((set, get) => ({
   createFolder: async (name, parentId = null, color = null) => {
     const pastels = ['lavanda', 'cielo', 'menta', 'durazno', 'lima', 'agua', 'malva'];
     const finalColor = color ?? pastels[get().foldersTree.length % pastels.length];
-    await ipc(Channels.folderCreate, { name, parentId, color: finalColor });
+    const m = get().mode;
+    const kind = m === 'boards' ? 'boards' : m === 'ai' ? 'chats' : 'notes';
+    await ipc(Channels.folderCreate, { name, parentId, color: finalColor, kind });
     await get().loadFolders();
   },
 
@@ -298,7 +345,10 @@ export const useStore = create<AppState>((set, get) => ({
     await get().loadNotes();
   },
 
-  setActiveNote: (id) => set({ activeNoteId: id }),
+  setActiveNote: (id) => {
+    set({ activeNoteId: id });
+    if (id != null) void ipc(Channels.settingsSet, { key: LAST_NOTE_KEY, value: String(id) });
+  },
 
   runSearch: async (q) => {
     const query = q.trim();
@@ -380,5 +430,66 @@ export const useStore = create<AppState>((set, get) => ({
     const next = !get().tagsSectionCollapsed;
     set({ tagsSectionCollapsed: next });
     void ipc(Channels.settingsSet, { key: TAGS_SEC_KEY, value: next ? '1' : '0' });
+  },
+
+  setMode: (m) => {
+    set({ mode: m, activeNoteId: null, activeBoardId: null, selectedFolderId: null });
+    void ipc(Channels.settingsSet, { key: LAST_MODE_KEY, value: m });
+    // Cada modo tiene su propio árbol de carpetas; recargamos al cambiar.
+    // El modo IA usa carpetas con kind='chats' para agrupar conversaciones.
+    void get().loadFolders();
+    if (m === 'boards') void get().loadBoards();
+    else if (m !== 'ai') void get().loadNotes();
+  },
+
+  loadBoards: async () => {
+    const { selectedFolderId } = get();
+    const req = selectedFolderId != null ? { folderId: selectedFolderId } : {};
+    set({ boards: await ipc(Channels.boardList, req) });
+  },
+
+  setActiveBoard: (id) => {
+    set({ activeBoardId: id });
+    if (id != null) void ipc(Channels.settingsSet, { key: LAST_BOARD_KEY, value: String(id) });
+  },
+
+  createBoard: async (name) => {
+    const folderId = get().selectedFolderId ?? null;
+    const finalName = name && name.trim() ? name : 'Nueva pizarra';
+    const b = await ipc(Channels.boardCreate, { name: finalName, folderId, color: 'lavanda' });
+    await get().loadBoards();
+    set({ activeBoardId: b.id });
+  },
+
+  startNewChat: () => {
+    // El store de IA gestiona el chat; importamos perezosamente para evitar ciclos.
+    void import('./ai/aiStore').then(({ useAi }) => {
+      useAi.getState().setGeneralConversation(null, []);
+    });
+  },
+
+  moveNoteToFolder: async (noteId, folderId) => {
+    await ipc(Channels.noteMove, { id: noteId, folderId });
+    await get().loadNotes();
+    toast({ title: 'Nota movida', description: folderId == null ? 'A la raíz' : 'A la carpeta seleccionada' });
+  },
+
+  renameBoard: async (id, name, color) => {
+    await ipc(Channels.boardRename, { id, name, color });
+    await get().loadBoards();
+  },
+
+  trashBoard: async (id, name) => {
+    await ipc(Channels.boardTrash, { id });
+    if (get().activeBoardId === id) set({ activeBoardId: null });
+    await get().loadBoards();
+    toast({
+      title: 'Pizarra movida a la papelera',
+      description: name,
+      actions: [{
+        label: 'Deshacer', primary: true,
+        onClick: async () => { await ipc(Channels.boardRestore, { id }); await get().loadBoards(); },
+      }],
+    });
   },
 }));

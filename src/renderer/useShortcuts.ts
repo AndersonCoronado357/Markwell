@@ -46,10 +46,13 @@ export function useShortcuts(): void {
       // === Atajos SOLO si el usuario no está escribiendo ===
       if (typing) return;
 
-      // Ctrl+N → nueva nota
+      // Ctrl+N → nueva nota / pizarra / chat según el modo
       if (mod && !e.shiftKey && k === 'n') {
         e.preventDefault();
-        void useStore.getState().createNote();
+        const s = useStore.getState();
+        if (s.mode === 'boards') void s.createBoard?.();
+        else if (s.mode === 'ai') s.startNewChat?.();
+        else void s.createNote();
         return;
       }
       // Ctrl+Shift+S → toggle sidebar
@@ -62,6 +65,23 @@ export function useShortcuts(): void {
       if (mod && e.shiftKey && k === 'n') {
         e.preventDefault();
         useStore.getState().toggleNotesPane();
+        return;
+      }
+      // Ctrl+1/2/3 → cambiar de modo (Notas / Pizarras / IA)
+      if (mod && !e.shiftKey && (k === '1' || k === '2' || k === '3')) {
+        e.preventDefault();
+        const s = useStore.getState();
+        s.setMode(k === '1' ? 'notes' : k === '2' ? 'boards' : 'ai');
+        return;
+      }
+      // Ctrl+B → toggle favorito de la nota activa
+      if (mod && !e.shiftKey && k === 'b') {
+        const s = useStore.getState();
+        if (s.activeNoteId != null) {
+          e.preventDefault();
+          const note = s.notes.find((n) => n.id === s.activeNoteId);
+          if (note) void s.setFavorite(note.id, !note.isFavorite);
+        }
         return;
       }
     };

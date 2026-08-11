@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Sun, Moon, Monitor, Database, Keyboard, Type, Info, TypeOutline, FolderOpen, Archive, Save } from 'lucide-react';
+import { ArrowLeft, Sun, Moon, Monitor, Database, Keyboard, Type, Info, TypeOutline, FolderOpen, Archive, Save, History } from 'lucide-react';
+import { confirmDelete } from '../confirmDelete';
 import { useStore } from '../store';
 import { Dropdown } from './Dropdown';
 import { ipc } from '../ipc';
@@ -253,12 +254,32 @@ function BackupsSection() {
           <ul className="mt-4 space-y-1">
             {items.map((b) => (
               <li key={b.filename} className="flex items-center justify-between gap-3 rounded-control bg-surface px-3 py-2 text-[12.5px]">
-                <span className="truncate font-mono text-text">{b.filename}</span>
-                <span className="shrink-0 text-text-muted">
-                  {new Date(b.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  {' · '}
-                  {(b.sizeBytes / 1024).toFixed(0)} KB
-                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-mono text-text">{b.filename}</div>
+                  <div className="mt-0.5 text-[11px] text-text-muted">
+                    {new Date(b.createdAt).toLocaleDateString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    {' · '}
+                    {(b.sizeBytes / 1024).toFixed(0)} KB
+                  </div>
+                </div>
+                <button
+                  onClick={() => confirmDelete({
+                    kind: 'nota',
+                    label: b.filename,
+                    onConfirm: async () => {
+                      try {
+                        await window.markwell.invoke(Channels.backupRestore, b.filename);
+                      } catch (e) {
+                        toast({ title: 'No se pudo restaurar', description: (e as Error).message });
+                      }
+                    },
+                  })}
+                  title="Restaurar este respaldo (reinicia la app)"
+                  className="shrink-0 inline-flex items-center gap-1 rounded-control bg-surface-alt px-2 py-1 text-[11.5px] font-medium text-text-muted hover:bg-bg hover:text-text"
+                >
+                  <History size={11} />
+                  Restaurar
+                </button>
               </li>
             ))}
           </ul>

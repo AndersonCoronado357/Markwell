@@ -271,6 +271,15 @@ body {
 .mw-img-h-e:hover, .mw-img-h-w:hover { transform: translateY(-50%) scaleY(1.15); }
 .mw-editor ::selection { background: color-mix(in srgb, var(--text) 18%, transparent); }
 
+/* Stickies (notas de pizarra) — formato básico dentro del cuerpo. */
+.mw-sticky-body strong { font-weight: 700; }
+.mw-sticky-body em { font-style: italic; }
+.mw-sticky-body u { text-decoration: underline; }
+.mw-sticky-body ul, .mw-sticky-body ol { padding-left: 1.2em; margin: 0.3em 0; }
+.mw-sticky-body li { margin: 0.1em 0; }
+.mw-sticky-body p { margin: 0.2em 0; }
+.mw-sticky-body a { color: #2a3eb4; text-decoration: underline; }
+
 /* Resaltado de coincidencias de "Buscar en la nota". Va por encima de cualquier
    otro fondo (highlight pastel del usuario, código, etc.) pero es traslúcido,
    así el resaltado original sigue viéndose por debajo. Usa la lavanda neutra
