@@ -63,6 +63,17 @@ export class BackupService {
     }
   }
 
+  /**
+   * Verifica que un respaldo exista y devuelve su ruta absoluta. El proceso
+   * principal usa este path para programar la restauración en el siguiente
+   * arranque.
+   */
+  prepareRestore(filename: string): string {
+    const target = path.join(this.backupsDir, filename);
+    if (!fs.existsSync(target)) throw new Error('El respaldo no existe.');
+    return target;
+  }
+
   private statBackup(filename: string, fullPath: string): BackupInfo {
     const st = fs.statSync(fullPath);
     return { filename, path: fullPath, createdAt: st.mtime.toISOString(), sizeBytes: st.size };
