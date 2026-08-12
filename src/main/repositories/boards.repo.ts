@@ -7,7 +7,7 @@ import type { NotesRepo } from './notes.repo';
 function mapSummary(r: any): BoardSummary {
   return {
     id: r.id, uuid: r.uuid, name: r.name, color: r.color,
-    folderId: r.folder_id, updatedAt: r.updated_at,
+    folderId: r.folder_id, updatedAt: r.updated_at, isFavorite: !!r.is_favorite,
   };
 }
 function mapItem(r: any): BoardItem {
@@ -32,6 +32,17 @@ export class BoardsRepo {
     if (folderId !== undefined) { sql += ' AND folder_id IS ?'; params.push(folderId); }
     sql += ' ORDER BY updated_at DESC';
     return (this.db.prepare(sql).all(...params) as any[]).map(mapSummary);
+  }
+
+  /** Solo las marcadas, sin importar la carpeta. */
+  listFavorites(): BoardSummary[] {
+    return (this.db
+      .prepare("SELECT * FROM boards WHERE deleted_at IS NULL AND is_favorite = 1 ORDER BY updated_at DESC")
+      .all() as any[]).map(mapSummary);
+  }
+
+  setFavorite(id: number, fav: boolean): void {
+    this.db.prepare("UPDATE boards SET is_favorite = ? WHERE id = ?").run(fav ? 1 : 0, id);
   }
 
   listTrashed(): BoardSummary[] {

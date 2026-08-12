@@ -4,7 +4,10 @@ import type { AiConversation, AiConvMessage, AiConvSummary } from '../../shared/
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function mapSummary(r: any): AiConvSummary {
-  return { id: r.id, uuid: r.uuid, title: r.title, updatedAt: r.updated_at, folderId: r.folder_id ?? null };
+  return {
+    id: r.id, uuid: r.uuid, title: r.title, updatedAt: r.updated_at,
+    folderId: r.folder_id ?? null, isFavorite: !!r.is_favorite,
+  };
 }
 function mapMessage(r: any): AiConvMessage {
   return { id: r.id, conversationId: r.conversation_id, role: r.role, text: r.text, createdAt: r.created_at };
@@ -27,6 +30,18 @@ export class AiConversationsRepo {
       return (this.db.prepare('SELECT * FROM ai_conversations WHERE folder_id IS NULL ORDER BY updated_at DESC').all() as any[]).map(mapSummary);
     }
     return (this.db.prepare('SELECT * FROM ai_conversations WHERE folder_id = ? ORDER BY updated_at DESC').all(folderId) as any[]).map(mapSummary);
+  }
+
+  /** Solo las marcadas, sin importar la carpeta. */
+  listFavorites(): AiConvSummary[] {
+    return (this.db
+      .prepare("SELECT * FROM ai_conversations WHERE is_favorite = 1 ORDER BY updated_at DESC")
+      .all() as any[]).map(mapSummary);
+  }
+
+  setFavorite(id: number, fav: boolean): AiConvSummary {
+    this.db.prepare("UPDATE ai_conversations SET is_favorite = ? WHERE id = ?").run(fav ? 1 : 0, id);
+    return mapSummary(this.db.prepare("SELECT * FROM ai_conversations WHERE id = ?").get(id));
   }
 
   get(id: number): AiConversation | null {

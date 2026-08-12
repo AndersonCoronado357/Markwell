@@ -10,6 +10,7 @@ import chatFolders008 from './migrations/008_chat_folders.sql?raw';
 import embeddings009 from './migrations/009_embeddings.sql?raw';
 import embeddings010 from './migrations/010_embeddings_3072.sql?raw';
 import dropTemplates011 from './migrations/011_drop_templates.sql?raw';
+import favorites012 from './migrations/012_favorites_everywhere.sql?raw';
 
 interface Migration { v: number; sql: string; }
 const MIGRATIONS: Migration[] = [
@@ -24,6 +25,7 @@ const MIGRATIONS: Migration[] = [
   { v: 9, sql: embeddings009 },
   { v: 10, sql: embeddings010 },
   { v: 11, sql: dropTemplates011 },
+  { v: 12, sql: favorites012 },
 ];
 
 /** Aplica las migraciones pendientes en una transacción. Devuelve la versión final. */
