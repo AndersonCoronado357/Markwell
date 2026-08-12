@@ -50,6 +50,7 @@ export interface BoardSummary {
   color: string | null;
   folderId: number | null;
   updatedAt: string;
+  isFavorite: boolean;
 }
 
 export interface BoardItem {
@@ -86,6 +87,7 @@ export interface AiConvSummary {
   title: string;
   updatedAt: string;
   folderId: number | null;
+  isFavorite: boolean;
 }
 export interface AiConvMessage {
   id: number;

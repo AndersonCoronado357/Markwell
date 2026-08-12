@@ -60,6 +60,8 @@ export const Channels = {
   boardRestore: 'boards:restore',
   boardPurge: 'boards:purge',
   boardFromNote: 'boards:fromNote',
+  boardSetFavorite: 'boards:setFavorite',
+  boardListFavorites: 'boards:listFavorites',
   itemCreate: 'boardItems:create',
   itemUpdate: 'boardItems:update',
   itemDelete: 'boardItems:delete',
@@ -83,6 +85,8 @@ export const Channels = {
   aiConvMove: 'ai:convMove',
   aiConvDelete: 'ai:convDelete',
   aiConvAppend: 'ai:convAppend',
+  aiConvSetFavorite: 'ai:convSetFavorite',
+  aiConvListFavorites: 'ai:convListFavorites',
 } as const;
 
 /** Estado del actualizador automático, tal como lo ve la interfaz. */
@@ -182,6 +186,8 @@ export interface IpcApi {
   [Channels.boardRestore]: { req: { id: number }; res: { ok: true } };
   [Channels.boardPurge]: { req: { id: number }; res: { ok: true } };
   [Channels.boardFromNote]: { req: { noteId: number }; res: Board };
+  [Channels.boardSetFavorite]: { req: { id: number; favorite: boolean }; res: { ok: true } };
+  [Channels.boardListFavorites]: { req: void; res: BoardSummary[] };
   [Channels.itemCreate]: {
     req: { boardId: number; type?: 'sticky'; text: string; x: number; y: number; w?: number; h?: number; color?: string | null };
     res: BoardItem;
@@ -211,6 +217,8 @@ export interface IpcApi {
   [Channels.aiConvMove]: { req: { id: number; folderId: number | null }; res: AiConvSummary };
   [Channels.aiConvDelete]: { req: { id: number }; res: { ok: true } };
   [Channels.aiConvAppend]: { req: { conversationId: number; role: 'user' | 'model'; text: string }; res: AiConvMessage };
+  [Channels.aiConvSetFavorite]: { req: { id: number; favorite: boolean }; res: AiConvSummary };
+  [Channels.aiConvListFavorites]: { req: void; res: AiConvSummary[] };
 }
 
 export type ChannelName = keyof IpcApi;

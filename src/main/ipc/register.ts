@@ -170,6 +170,8 @@ export function registerIpc(c: Container): void {
   handle(Channels.boardRestore, (r) => { c.boards.restore(r.id); return { ok: true as const }; });
   handle(Channels.boardPurge, (r) => { c.boards.purge(r.id); return { ok: true as const }; });
   handle(Channels.boardFromNote, (r) => c.boards.fromNote(c.notes, r.noteId));
+  handle(Channels.boardSetFavorite, (r) => { c.boards.setFavorite(r.id, r.favorite); return { ok: true as const }; });
+  handle(Channels.boardListFavorites, () => c.boards.listFavorites());
   handle(Channels.itemCreate, (r) => c.boards.createItem(r));
   handle(Channels.itemUpdate, (r) => c.boards.updateItem(r.id, r));
   handle(Channels.itemDelete, (r) => { c.boards.deleteItem(r.id); return { ok: true as const }; });
@@ -210,4 +212,6 @@ export function registerIpc(c: Container): void {
   handle(Channels.aiConvMove, (r) => c.aiConv.move(r.id, r.folderId));
   handle(Channels.aiConvDelete, (r) => { c.aiConv.delete(r.id); return { ok: true as const }; });
   handle(Channels.aiConvAppend, (r) => c.aiConv.appendMessage(r.conversationId, r.role, r.text));
+  handle(Channels.aiConvSetFavorite, (r) => c.aiConv.setFavorite(r.id, r.favorite));
+  handle(Channels.aiConvListFavorites, () => c.aiConv.listFavorites());
 }

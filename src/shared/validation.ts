@@ -157,6 +157,8 @@ export const validators: Partial<Record<string, z.ZodTypeAny>> = {
   [Channels.noteSetTags]: noteSetTags,
   [Channels.search]: searchReq,
   [Channels.settingsSet]: settingSet,
+  [Channels.boardSetFavorite]: z.object({ id: z.number().int(), favorite: z.boolean() }),
+  [Channels.aiConvSetFavorite]: z.object({ id: z.number().int(), favorite: z.boolean() }),
   [Channels.noteExport]: z.object({
     id: z.number().int(),
     format: z.enum(['md', 'html', 'pdf']),
