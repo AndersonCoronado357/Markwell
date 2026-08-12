@@ -9,6 +9,7 @@ import aiConvs007 from './migrations/007_ai_conversations.sql?raw';
 import chatFolders008 from './migrations/008_chat_folders.sql?raw';
 import embeddings009 from './migrations/009_embeddings.sql?raw';
 import embeddings010 from './migrations/010_embeddings_3072.sql?raw';
+import dropTemplates011 from './migrations/011_drop_templates.sql?raw';
 
 interface Migration { v: number; sql: string; }
 const MIGRATIONS: Migration[] = [
@@ -22,6 +23,7 @@ const MIGRATIONS: Migration[] = [
   { v: 8, sql: chatFolders008 },
   { v: 9, sql: embeddings009 },
   { v: 10, sql: embeddings010 },
+  { v: 11, sql: dropTemplates011 },
 ];
 
 /** Aplica las migraciones pendientes en una transacción. Devuelve la versión final. */

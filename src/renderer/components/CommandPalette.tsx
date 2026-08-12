@@ -21,7 +21,7 @@ export function CommandPalette() {
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Recalcula la lista al abrir (incluye plantillas — carga async).
+  // Recalcula la lista al abrir: depende del estado (nota activa, modo…).
   const [commands, setCommands] = useState<Command[]>([]);
   useEffect(() => {
     if (!open) { setCommands([]); return; }

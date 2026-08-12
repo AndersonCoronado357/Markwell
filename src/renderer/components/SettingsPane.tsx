@@ -7,7 +7,6 @@ import { ipc } from '../ipc';
 import { Channels } from '../../shared/ipc';
 import { toast } from '../toastStore';
 import type { BackupInfo } from '../../shared/models';
-import { TemplatesSection } from './TemplatesSection';
 
 const PASTELS = [
   'rosa', 'coral', 'durazno', 'amarillo', 'lima', 'menta',
@@ -195,7 +194,6 @@ export function SettingsPane() {
           </Section>
 
           <BackupsSection />
-          <TemplatesSection />
 
           <Section icon={<Info size={15} />} title="Sobre Markwell">
             <p className="text-[13.5px] text-text-muted">

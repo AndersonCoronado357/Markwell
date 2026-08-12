@@ -43,16 +43,6 @@ export interface Note extends NoteSummary {
   deletedAt: string | null;
 }
 
-export interface Template {
-  id: number;
-  uuid: string;
-  name: string;
-  description: string | null;
-  contentJson: unknown;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface BoardSummary {
   id: number;
   uuid: string;

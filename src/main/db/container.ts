@@ -5,7 +5,6 @@ import { TagsRepo } from '../repositories/tags.repo';
 import { SettingsRepo } from '../repositories/settings.repo';
 import { SearchService } from '../services/search.service';
 import { BackupService } from '../services/backup.service';
-import { TemplatesRepo } from '../repositories/templates.repo';
 import { BoardsRepo } from '../repositories/boards.repo';
 import { SecretsService } from '../services/secrets.service';
 import { AiService } from '../services/ai.service';
@@ -22,7 +21,6 @@ export interface Container {
   settings: SettingsRepo;
   search: SearchService;
   backup: BackupService;
-  templates: TemplatesRepo;
   boards: BoardsRepo;
   secrets: SecretsService;
   ai: AiService;
@@ -43,7 +41,6 @@ export function buildContainer(db: DB, backupsDir: string, secretsDir: string): 
     settings,
     search: new SearchService(db),
     backup: new BackupService(db, settings, backupsDir),
-    templates: new TemplatesRepo(db),
     boards: new BoardsRepo(db),
     secrets,
     ai: new AiService(secrets, settings),

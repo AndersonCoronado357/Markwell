@@ -1,6 +1,6 @@
 // Contrato IPC: nombres de canal + formas request/response. Una sola fuente de
 // verdad compartida por preload, renderer y main.
-import type { AiConversation, AiConvMessage, AiConvSummary, BackupInfo, Board, BoardConnection, BoardItem, BoardSummary, Folder, FolderNode, Note, NoteSummary, NoteType, SearchHit, Tag, Template } from './models';
+import type { AiConversation, AiConvMessage, AiConvSummary, BackupInfo, Board, BoardConnection, BoardItem, BoardSummary, Folder, FolderNode, Note, NoteSummary, NoteType, SearchHit, Tag } from './models';
 
 export const Channels = {
   appHealth: 'app:health',
@@ -50,11 +50,6 @@ export const Channels = {
   backupList: 'backup:list',
   backupRestore: 'backup:restore',
 
-  templateList: 'templates:list',
-  templateCreate: 'templates:create',
-  templateUpdate: 'templates:update',
-  templateDelete: 'templates:delete',
-  noteFromTemplate: 'templates:newNote',
 
   boardList: 'boards:list',
   boardGet: 'boards:get',
@@ -177,11 +172,6 @@ export interface IpcApi {
   [Channels.backupList]: { req: void; res: BackupInfo[] };
   [Channels.backupRestore]: { req: string; res: void };
 
-  [Channels.templateList]: { req: void; res: Template[] };
-  [Channels.templateCreate]: { req: { name: string; description?: string | null; contentJson: unknown }; res: Template };
-  [Channels.templateUpdate]: { req: { id: number; name?: string; description?: string | null; contentJson?: unknown }; res: Template };
-  [Channels.templateDelete]: { req: { id: number }; res: { ok: true } };
-  [Channels.noteFromTemplate]: { req: { templateId: number; folderId?: number | null }; res: Note };
 
   [Channels.boardList]: { req: { folderId?: number | null }; res: BoardSummary[] };
   [Channels.boardGet]: { req: { id: number }; res: Board | null };
