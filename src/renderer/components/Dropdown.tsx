@@ -42,7 +42,7 @@ export function Dropdown<T extends string | number>({
         <DM.Content
           align={align}
           sideOffset={4}
-          className="z-50 max-h-[320px] overflow-y-auto rounded-card bg-surface p-1 shadow-xl ring-1 ring-black/[0.08]"
+          className="mw-sin-barra z-50 max-h-[320px] overflow-y-auto rounded-card bg-surface p-1 shadow-xl ring-1 ring-black/[0.08]"
           style={{ width: width }}
         >
           {options.map((o) => (

@@ -266,7 +266,9 @@ export function Sidebar() {
           </div>
         )}
 
-        {!isAi && (
+        {/* Las etiquetas son solo de notas: las pizarras no se etiquetan, y en
+            el modo pizarras pulsar una no hacía nada visible. */}
+        {!isAi && !isBoards && (
           <>
             <div className="flex items-center justify-between px-2.5 pt-5 pb-1.5">
               <button

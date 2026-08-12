@@ -82,6 +82,11 @@ body {
 }
 ::-webkit-scrollbar-track { background: transparent; }
 
+/* En los desplegables la barra asoma como un puntito en la esquina cuando la
+   lista apenas desborda. Ahí se oculta del todo: se sigue pudiendo rodar. */
+.mw-sin-barra { scrollbar-width: none; -ms-overflow-style: none; }
+.mw-sin-barra::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
 /* ---- Editor TipTap ---- */
 .mw-editor { outline: none; min-height: 60vh; font-size: calc(16px * var(--editor-scale, 1)); }
 .mw-editor > * + * { margin-top: 0.7em; }

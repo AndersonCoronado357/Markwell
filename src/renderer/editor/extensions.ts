@@ -57,7 +57,11 @@ export const buildExtensions = () => [
       if (node.type.name === 'paragraph') return 'Empieza a escribir…';
       return '';
     },
-    includeChildren: true,
-    showOnlyCurrent: false,
+    // Solo en el bloque donde está el cursor, y sin bajar a los hijos.
+    // Con `showOnlyCurrent: false` la frase "Empieza a escribir…" salía en
+    // todos los párrafos vacíos a la vez; con `includeChildren: true` seguía
+    // saliendo por duplicado (el bloque y su hijo).
+    showOnlyCurrent: true,
+    includeChildren: false,
   }),
 ];
