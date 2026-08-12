@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Star, Trash2, ArchiveRestore, Sparkles } from 'lucide-react';
+import { Star, Trash2, ArchiveRestore, Sparkles, Download } from 'lucide-react';
+import * as DM from '@radix-ui/react-dropdown-menu';
+import { exportarNota } from '../commands';
 import { ipc } from '../ipc';
 import { Channels } from '../../shared/ipc';
 import { useStore } from '../store';
@@ -111,6 +113,7 @@ export function ContentPane() {
                     stroke={note.isFavorite ? 'var(--color-pastel-durazno)' : 'currentColor'}
                   />
                 </IconBtn>
+                <ExportMenu />
                 <IconBtn label="Mover a la papelera" onClick={() => trashNoteAct(note.id, note.title)}>
                   <Trash2 size={16} />
                 </IconBtn>
@@ -165,6 +168,37 @@ export function ContentPane() {
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Exportar la nota abierta. Vive en la cabecera además de en la paleta de
+ * comandos: por la paleta sola no había forma de descubrir que existía.
+ */
+function ExportMenu() {
+  const item = 'flex cursor-pointer items-center gap-2 rounded-control px-2.5 py-1.5 text-[13px] text-text outline-none data-[highlighted]:bg-surface-alt';
+  return (
+    <DM.Root>
+      <DM.Trigger asChild>
+        <button
+          title="Exportar nota"
+          className="rounded-control p-2 text-text-muted transition-colors hover:bg-surface-alt hover:text-text data-[state=open]:bg-surface-alt data-[state=open]:text-text"
+        >
+          <Download size={16} />
+        </button>
+      </DM.Trigger>
+      <DM.Portal>
+        <DM.Content
+          align="end"
+          sideOffset={4}
+          className="z-50 min-w-[188px] rounded-card bg-surface p-1 shadow-xl ring-1 ring-black/[0.08]"
+        >
+          <DM.Item className={item} onSelect={() => void exportarNota('md')}>Exportar a Markdown</DM.Item>
+          <DM.Item className={item} onSelect={() => void exportarNota('html')}>Exportar a HTML</DM.Item>
+          <DM.Item className={item} onSelect={() => void exportarNota('pdf')}>Exportar a PDF</DM.Item>
+        </DM.Content>
+      </DM.Portal>
+    </DM.Root>
   );
 }
 
