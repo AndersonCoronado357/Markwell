@@ -225,7 +225,8 @@ export function Sidebar() {
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2.5">
         {nav(!settingsOpen && view === 'folder' && selectedFolderId === null, () => selectFolder(null), <Inbox size={15} />, allLabel)}
-        {!isAi && nav(!settingsOpen && view === 'favorites', () => setView('favorites'), <Star size={15} className="text-text-muted" />, 'Favoritos')}
+        {/* Los tres modos tienen favoritos: notas, pizarras y conversaciones. */}
+        {nav(!settingsOpen && view === 'favorites', () => setView('favorites'), <Star size={15} className="text-text-muted" />, 'Favoritos')}
 
         <div className="flex items-center justify-between px-2.5 pt-5 pb-1.5">
           <button

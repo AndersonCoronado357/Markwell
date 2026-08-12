@@ -82,6 +82,7 @@ interface AppState {
 
   setMode: (m: AppMode) => void;
   loadBoards: () => Promise<void>;
+  setBoardFavorite: (id: number, fav: boolean) => Promise<void>;
   setActiveBoard: (id: number | null) => void;
   createBoard: (name?: string) => Promise<void>;
   startNewChat: () => void;
@@ -221,7 +222,10 @@ export const useStore = create<AppState>((set, get) => ({
   setView: async (view) => {
     set({ view, selectedFolderId: null, selectedTagId: null, activeNoteId: null });
     if (view === 'trash') await get().loadTrash();
-    await get().loadNotes();
+    // Cada modo recarga su propia lista. Las conversaciones se recargan solas
+    // en AiConversationsList, que ya observa los cambios de vista.
+    if (get().mode === 'boards') await get().loadBoards();
+    else await get().loadNotes();
   },
 
   toggleFolderCollapsed: (id) => {
@@ -443,9 +447,18 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   loadBoards: async () => {
-    const { selectedFolderId } = get();
+    const { selectedFolderId, view } = get();
+    if (view === 'favorites') {
+      set({ boards: await ipc(Channels.boardListFavorites) });
+      return;
+    }
     const req = selectedFolderId != null ? { folderId: selectedFolderId } : {};
     set({ boards: await ipc(Channels.boardList, req) });
+  },
+
+  setBoardFavorite: async (id, fav) => {
+    await ipc(Channels.boardSetFavorite, { id, favorite: fav });
+    await get().loadBoards();
   },
 
   setActiveBoard: (id) => {

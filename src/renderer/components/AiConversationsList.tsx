@@ -6,6 +6,7 @@ import type { AiConvSummary, AiConversation } from '../../shared/models';
 import { useStore } from '../store';
 import { useAi } from '../ai/aiStore';
 import { ContextMenu, type CtxItem } from './ContextMenu';
+import { Star } from 'lucide-react';
 import { confirmDelete } from '../confirmDelete';
 import { InlineEditor } from './InlineEditor';
 
@@ -30,10 +31,15 @@ export function AiConversationsList() {
       const f = flatFolders.find((x) => x.id === selectedFolderId);
       return f?.name ?? 'Carpeta';
     }
+    if (view === 'favorites') return 'Conversaciones favoritas';
     return 'Todas las conversaciones';
   })();
 
   const reload = () => {
+    if (view === 'favorites') {
+      void ipc(Channels.aiConvListFavorites).then(setConvs);
+      return;
+    }
     const folderArg = view === 'folder' && selectedFolderId != null ? { folderId: selectedFolderId } : undefined;
     void ipc(Channels.aiConvList, folderArg ?? {}).then(setConvs);
   };
@@ -45,6 +51,11 @@ export function AiConversationsList() {
   }, [general.streaming, general.conversationId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const newConversation = () => setGeneralConversation(null, []);
+
+  const marcarFavorita = async (id: number, fav: boolean) => {
+    await ipc(Channels.aiConvSetFavorite, { id, favorite: fav });
+    reload();
+  };
 
   const openConversation = async (id: number) => {
     const conv = await ipc(Channels.aiConvGet, { id });
@@ -96,9 +107,11 @@ export function AiConversationsList() {
       <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
         {convs.length === 0 ? (
           <p className="mt-12 px-3 text-center text-[13px] text-text-muted">
-            {view === 'folder' && selectedFolderId != null
-              ? 'Esta carpeta no tiene chats.'
-              : 'No hay conversaciones guardadas todavía.'}
+            {view === 'favorites'
+              ? 'Ninguna conversación marcada como favorita.'
+              : view === 'folder' && selectedFolderId != null
+                ? 'Esta carpeta no tiene chats.'
+                : 'No hay conversaciones guardadas todavía.'}
           </p>
         ) : (
           <ul className="space-y-1">
@@ -147,6 +160,11 @@ export function AiConversationsList() {
                 );
               }
               const items: CtxItem[] = [
+                {
+                  label: c.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos',
+                  icon: <Star size={14} />,
+                  onSelect: () => void marcarFavorita(c.id, !c.isFavorite),
+                },
                 { label: 'Renombrar', icon: <Pencil size={14} />, onSelect: () => setRenamingId(c.id) },
                 { label: 'Mover a carpeta', icon: <FolderInput size={14} />, onSelect: () => setMoveTargetId(c.id) },
                 { label: 'Eliminar', icon: <Trash2 size={14} />, danger: true, onSelect: () => deleteConv(c) },
@@ -156,7 +174,7 @@ export function AiConversationsList() {
                   <ContextMenu items={items}>
                     <button
                       onClick={() => void openConversation(c.id)}
-                      className={`flex w-full items-center gap-3 rounded-card px-4 py-3 text-left transition-colors ${
+                      className={`group flex w-full items-center gap-3 rounded-card px-4 py-3 text-left transition-colors ${
                         active ? 'bg-surface shadow-sm ring-1 ring-black/[0.04]' : 'hover:bg-surface/70'
                       }`}
                     >
@@ -171,6 +189,22 @@ export function AiConversationsList() {
                           })}
                         </div>
                       </div>
+                      <span
+                        role="button"
+                        tabIndex={-1}
+                        title={c.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                        onClick={(e) => { e.stopPropagation(); void marcarFavorita(c.id, !c.isFavorite); }}
+                        className={`shrink-0 rounded-control p-1 transition-opacity ${
+                          c.isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
+                        <Star
+                          size={14}
+                          fill={c.isFavorite ? 'var(--color-pastel-durazno)' : 'none'}
+                          stroke={c.isFavorite ? 'var(--color-pastel-durazno)' : 'currentColor'}
+                          className="text-text-muted"
+                        />
+                      </span>
                     </button>
                   </ContextMenu>
                 </li>

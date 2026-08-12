@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Plus, LayoutDashboard, Trash2 } from 'lucide-react';
+import { Plus, LayoutDashboard, Trash2, Star } from 'lucide-react';
 import { useStore } from '../store';
 import { ContextMenu, type CtxItem } from './ContextMenu';
 
@@ -10,6 +10,7 @@ export function BoardsList() {
   const boards = useStore((s) => s.boards);
   const activeBoardId = useStore((s) => s.activeBoardId);
   const setActiveBoard = useStore((s) => s.setActiveBoard);
+  const setBoardFavorite = useStore((s) => s.setBoardFavorite);
   const createBoard = useStore((s) => s.createBoard);
   const trashBoard = useStore((s) => s.trashBoard);
   const loadBoards = useStore((s) => s.loadBoards);
@@ -41,6 +42,11 @@ export function BoardsList() {
               const active = activeBoardId === b.id;
               const items: CtxItem[] = [
                 {
+                  label: b.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos',
+                  icon: <Star size={14} />,
+                  onSelect: () => void setBoardFavorite(b.id, !b.isFavorite),
+                },
+                {
                   label: 'Mover a la papelera', icon: <Trash2 size={14} />, danger: true,
                   onSelect: () => trashBoard(b.id, b.name),
                 },
@@ -50,7 +56,7 @@ export function BoardsList() {
                   <ContextMenu items={items}>
                     <button
                       onClick={() => setActiveBoard(b.id)}
-                      className={`flex w-full items-center gap-3 rounded-card px-4 py-3 text-left transition-colors ${
+                      className={`group flex w-full items-center gap-3 rounded-card px-4 py-3 text-left transition-colors ${
                         active ? 'bg-surface shadow-sm ring-1 ring-black/[0.04]' : 'hover:bg-surface/70'
                       }`}
                     >
@@ -70,6 +76,22 @@ export function BoardsList() {
                           })}
                         </div>
                       </div>
+                      <span
+                        role="button"
+                        tabIndex={-1}
+                        title={b.isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'}
+                        onClick={(e) => { e.stopPropagation(); void setBoardFavorite(b.id, !b.isFavorite); }}
+                        className={`shrink-0 rounded-control p-1 transition-opacity ${
+                          b.isFavorite ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}
+                      >
+                        <Star
+                          size={14}
+                          fill={b.isFavorite ? 'var(--color-pastel-durazno)' : 'none'}
+                          stroke={b.isFavorite ? 'var(--color-pastel-durazno)' : 'currentColor'}
+                          className="text-text-muted"
+                        />
+                      </span>
                     </button>
                   </ContextMenu>
                 </li>
